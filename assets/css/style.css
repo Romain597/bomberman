@@ -1,0 +1,136 @@
+/* reset */
+html, body {
+    position: relative;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    font-size:1rem;
+    color: #444;
+    font-weight: bold;
+    height:100vh;
+}
+/* display */
+.game-ui {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content:center;
+    align-items: center;
+    align-content: center;
+    height:100%;
+}
+.consigne-container {
+    position: relative;
+    display: block;
+    flex: 0 1 auto;
+    order:0;
+    align-self: auto;
+    margin:20px;
+    padding: 0;
+    border:0;
+    font-size:1rem;
+    color: #444;
+    font-weight: bold;
+}
+.consigne-container > p {
+    position: relative;
+    display: block;
+    margin:10px 0;
+    padding: 0;
+    border:0;
+    font-size:1rem;
+    color: #444;
+    font-weight: bold;
+    text-align: left;
+}
+.game-table-container {
+    position: relative;
+    display: block;
+    flex: 0 1 auto;
+    order:0;
+    align-self: auto;
+    margin:20px;
+    padding: 0;
+}
+.life-container {
+    position: relative;
+    display: block;
+    flex: 0 1 auto;
+    order:0;
+    align-self: auto;
+    margin:20px;
+    padding: 0;
+    border:0;
+    font-size:1rem;
+    color: #444;
+    font-weight: bold;
+    text-align: left;
+}
+.life-container > p {
+    position: relative;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    font-size:1rem;
+    color: #444;
+    font-weight: bold;
+    text-align: left;
+}
+/* game */
+.game-table {
+    position: relative;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:20px solid gray;
+    background-color: lightgrey;
+    width:800px;
+    height:800px;
+    z-index:10;
+}
+.player {
+    position: absolute;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    background-color:yellow;
+    width:50px;
+    height:50px;
+    left:0px;
+    top:0px;
+    z-index:25;
+}
+.tracker {
+    position: absolute;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    background-color:darkblue;
+    width:50px;
+    height:50px;
+    left:50px;
+    top:50px;
+    z-index:15;
+}
+.bomb {
+    position: absolute;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    background-color:red;
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    -webkit-border-radius:50%;
+    -moz-border-radius:50%;
+    -ms-border-radius:50%;
+    -o-border-radius:50%;
+    left:100px;
+    top:100px;
+    z-index:20;
+}
