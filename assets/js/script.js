@@ -20,17 +20,21 @@ window.onload = () => {
     const startClearZone = 2;
     let hit = false;
     let inGame = false;
-    let playerPos = [initialY,initialX];
+    //let playerPos = [initialY,initialX];
     let bombCount = bombMaxCount;
     let lifeCount = lifeMaxCount;
     let foesCount = foesMaxCount;
     let foesArray = [];
     let bombsArray = [];
+    let hitsArray = [];
 
-    function getPlayerPos() {
-        return [parseInt(window.getComputedStyle(player).getPropertyValue("top")),parseInt(window.getComputedStyle(player).getPropertyValue("left"))];
+    function getPos(object,property) {
+        return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
     }
-    function collisionAction() {
+    function getPlayerPos() {
+        return [getPos(player,"top"),getPos(player,"left")];
+    }
+    function collisionAction(minusLife) {
         player.classList.remove("collision");
         let intervalCollision = setInterval(() => {
             player.classList.toggle("collision");
@@ -39,20 +43,43 @@ window.onload = () => {
             clearInterval(intervalCollision);
             player.classList.remove("collision");
         }, collisionDuration);
-        lifeCount--;
-        lifeNbElement.innerText = lifeCount;
+        if(minusLife) {
+            lifeCount--;
+            lifeNbElement.innerText = lifeCount;
+        }
     }
-    function testCollision() {
-        let currentPos = playerPos;
+    function testCollision(foe) {
+        let playerPos = getPlayerPos();
         let val = false;
-        foesArray.forEach(div => {
-            //console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
-            if(div[1]==currentPos[0] && div[2]==currentPos[1]) {
-                //console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
+        if(foe!==null) {
+            let tempEl = foe;
+            let tempY = getPos(tempEl,"top");
+            let tempX = getPos(tempEl,"left");
+            if(tempY==playerPos[0] && tempX==playerPos[1]) {
                 val = true;
+                hitsArray.push([div[0]]);
+                //return true;
             }
-        });
+        }
+        else {
+            foesArray.forEach(div => {
+                /*//console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
+                if(div[1]==currentPos[0] && div[2]==currentPos[1]) {
+                    //console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
+                    val = true;
+                }*/
+                let tempEl = container.querySelector("#"+div[0]);
+                let tempY = getPos(tempEl,"top");
+                let tempX = getPos(tempEl,"left");
+                if(tempY==playerPos[0] && tempX==playerPos[1]) {
+                    val = true;
+                    hitsArray.push([div[0]]);
+                    //return true;
+                }
+            });
+        }
         return val;
+        //return false;
     }
     function gameFail() {
         inGame = false;
@@ -70,21 +97,33 @@ window.onload = () => {
         el.innerHTML = "<p>GAME WIN</p><p>Vous avez gagné !</p>";
         container.appendChild(el);
     }
+    function testBombPosExist(elY,elX) {
+        let val = false;
+        if(bombsArray.length>0) {
+            let tempEl = container.querySelector("#"+bombsArray[bombsArray.length-1][0]);
+            let tempY = getPos(tempEl,"top");
+            let tempX = getPos(tempEl,"left");
+            if(tempY==elY && tempX==elX) {
+                val = true;
+            }
+        }
+        return val;
+    }
     function gameAction(keyCode)
     {
-        let currentPos = playerPos; //getPlayerPos();
-        let newPosition = currentPos;
+        let playerPos = getPlayerPos();
+        let newPosition = playerPos;
         if(lifeCount>=0) {
             switch(keyCode) {
                 case "ArrowUp":
-                    if(currentPos[0]>=offset) {
+                    if(playerPos[0]>=offset) {
                         newPosition[0] -= offset;
                         player.style.top = newPosition[0]+"px";
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
-                                collisionAction();
+                                collisionAction(true);
                             }
                             else {
                                 gameFail();
@@ -93,14 +132,14 @@ window.onload = () => {
                     }
                 break;
                 case "ArrowDown":
-                    if(currentPos[0]<=(maxOffset-offset)) {
+                    if(playerPos[0]<=(maxOffset-offset)) {
                         newPosition[0] += offset;
                         player.style.top = newPosition[0]+"px";
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
-                                collisionAction();
+                                collisionAction(true);
                             }
                             else {
                                 gameFail();
@@ -109,14 +148,14 @@ window.onload = () => {
                     }
                 break;
                 case "ArrowLeft":
-                    if(currentPos[1]>=offset) {
+                    if(playerPos[1]>=offset) {
                         newPosition[1] -= offset;
                         player.style.left = newPosition[1]+"px";
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
-                                collisionAction();
+                                collisionAction(true);
                             }
                             else {
                                 gameFail();
@@ -125,14 +164,14 @@ window.onload = () => {
                     }
                 break;
                 case "ArrowRight":
-                    if(currentPos[1]<=(maxOffset-offset)) {
+                    if(playerPos[1]<=(maxOffset-offset)) {
                         newPosition[1] += offset;
                         player.style.left = newPosition[1]+"px";
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
-                                collisionAction();
+                                collisionAction(true);
                             }
                             else {
                                 gameFail();
@@ -142,19 +181,22 @@ window.onload = () => {
                 break;
                 case "Space":
                     if(bombCount>0) {
-                        let el = document.createElement("div"); 
-                        el.classList.add(bombClass);
-                        el.id = "bomb"+bombCount;
-                        el.style.top = currentPos[0]+"px";
-                        el.style.left = currentPos[1]+"px";
-                        container.appendChild(el);
-                        bombCount--;
-                        bombNbElement.innerText = bombCount;
+                        if(testBombPosExist(playerPos[0],playerPos[1])==false) {
+                            let el = document.createElement("div"); 
+                            el.classList.add(bombClass);
+                            el.id = "bomb"+bombCount;
+                            el.style.top = playerPos[0]+"px";
+                            el.style.left = playerPos[1]+"px";
+                            container.appendChild(el);
+                            bombsArray.push([el.id]);
+                            bombCount--;
+                            bombNbElement.innerText = bombCount;
+                        }
                     }
                 break;
             }
         }
-        return newPosition;
+        //return newPosition;
     }
     function getRandomIntInclusive() {
         let min = 1;
@@ -162,88 +204,175 @@ window.onload = () => {
         return Math.floor(Math.random() * (max - min +1)) + min;
     }
     function testPosPlayer(elY,elX) {
+        let val = false;
         if(elY>=initialY-(startClearZone*offset) && elY<=initialY+(startClearZone*offset) && elX>=initialX-(startClearZone*offset) && elX<=initialX+(startClearZone*offset)) {
-            return true;
+            //return true;
+            val = true;
         }
-        return false;
+        //return false;
+        return val;
+    }
+    function testDirPosFoe(elY,elX,dir) {
+        let val = false;
+        if(dir!="none" && dir!="") {
+            foesArray.forEach(div => {
+                let tempEl = container.querySelector("#"+div[0]);
+                let tempY = getPos(tempEl,"top");
+                let tempX = getPos(tempEl,"left");
+                if(dir=="all") {
+                    if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
+                        val = true;
+                        //return true;
+                    }
+                }
+                else if(dir=="top") {
+                    if(elY-offset==tempY && elX==tempX) {
+                        val = true;
+                        //return true;
+                    }
+                }
+                else if(dir=="bottom") {
+                    if(elY+offset==tempY && elX==tempX) {
+                        val = true;
+                        //return true;
+                    }
+                }
+                else if(dir=="right") {
+                    if(elX-offset==tempX && elY==tempY) {
+                        val = true;
+                        //return true;
+                    }
+                }
+                else if(dir=="left") {
+                    if(elX+offset==tempX && elY==tempY) {
+                        val = true;
+                        //return true;
+                    }
+                }
+            });
+        }
+        return val;
+        //return false;
     }
     function testFoePosExist(elY,elX) {
+        let val = false;
         foesArray.forEach(div => {
-            if(div[1]==elY && div[2]==elX) {
-                return true;
+            let tempEl = container.querySelector("#"+div[0]);
+            let tempY = getPos(tempEl,"top");
+            let tempX = getPos(tempEl,"left");
+            if(tempY==elY && tempX==elX) {
+                //return true;
+                val = true;
             }
         });
-        return false;
+        //return false;
+        return val;
     }
-    function getFoesDirection() {
+    function getFoesDirection(valY,valX) {
         let valN = Math.floor(Math.random() * (5 - 1 +1)) + 1;
+        let dir = "none";
         if(valN==1) {
-            return "top";
+            dir = "top";
         }
         else if(valN==2) {
-            return "bottom";
+            dir = "bottom";
         }
         else if(valN==3) {
-            return "right";
+            dir = "right";
         }
         else if(valN==4) {
-            return "left";
+            dir = "left";
         }
-        else {
+        /*else {
             return "none";
+        }*/
+        if(valY!==null && valX!==null) {
+            if(valY<=0 && dir=="top") {
+                dir = "bottom";
+            }
+            else if(valY>=maxOffset && dir=="bottom") {
+                dir = "top";
+            }
+            else if(valX>=maxOffset && dir=="left") {
+                dir = "right";
+            }
+            else if(valX<=0 && dir=="right") {
+                dir = "left";
+            }
         }
+        return dir;
     }
     function foesInMovement() {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
                 let el = container.querySelector("#"+div[0]);
-                let offsetY = 0; let valY = parseInt(window.getComputedStyle(el,null).top.replace("px",""));
-                let offsetX = 0; let valX = parseInt(window.getComputedStyle(el,null).left.replace("px",""));
-                let dir = getFoesDirection();
+                let offsetY = 0; let valY = getPos(el,"top");
+                let offsetX = 0; let valX = getPos(el,"left");
+                let dir = getFoesDirection(valY,valX);
                 //console.log(dir);
-                let mur = false;
+                /*if(valY<=0 && dir=="top") {
+                    dir = "bottom";
+                }
+                else if(valY>=maxOffset && dir=="bottom") {
+                    dir = "top";
+                }
+                else if(valX>=maxOffset && dir=="left") {
+                    dir = "right";
+                }
+                else if(valX<=0 && dir=="right") {
+                    dir = "left";
+                }*/
+                /*let mur = true; let i = 0;
+                while(mur) {
+                    if(i>=3) {
+                        mur = false;
+                    }
+                    i++;
+                }
                 if(valY<=0 || valY>=maxOffset || valX<=0 || valX>=maxOffset) {
                     mur = true;
-                }
+                }*/
                 //console.log(mur);
+                let collision = testDirPosFoe(valY,valX,dir);
+                while(collision) {
+                    dir = getFoesDirection(valY,valX);
+                    collision = testDirPosFoe(valY,valX,dir);
+                }
+                //console.log(collision);
                 switch(dir) {
                     case "top":
-                        if(mur) {
-                            offsetY += offset;
-                        }
-                        else {
-                            offsetY -= offset;
-                        }
+                        offsetY -= offset;
                     break;
                     case "bottom":
-                        if(mur) {
-                            offsetY -= offset;
-                        }
-                        else {
-                            offsetY += offset;
-                        }
+                        offsetY += offset;
                     break;
                     case "right":
-                        if(mur) {
-                            offsetX += offset;
-                        }
-                        else {
-                            offsetX -= offset; 
-                        }
+                        offsetX -= offset; 
                     break;
                     case "left":
-                        if(mur) {
-                            offsetX -= offset;
-                        }
-                        else {
-                            offsetX += offset; 
-                        }
+                        offsetX += offset; 
                     break;
                 }
-                console.log(offsetY,offsetX);
+                //console.log(offsetY,offsetX);
                 el.style.top = (valY+offsetY)+"px";
                 el.style.left = (valX+offsetX)+"px";
-                console.log(valY+offsetY,valX+offsetX);
+                let samePos = testCollision(el);
+                //console.log(samePos);
+                if(samePos) {
+                    if(lifeCount>0) {
+                        let notHit = true;
+                        if(hitsArray.length>0) {
+                            if(hitsArray[hitsArray.length-1][0]==el.id) {
+                                notHit = false;
+                            }
+                        }
+                        collisionAction(notHit);
+                    }
+                    else {
+                        gameFail();
+                    } 
+                }
+                //console.log(valY+offsetY,valX+offsetX);
             }, foesDelay);
             div.push(intervalRef);
         });
@@ -256,9 +385,9 @@ window.onload = () => {
         if(msg!==null) { 
             container.querySelector("#bandeau").remove(); 
         }
-        playerPos = [initialY,initialX];
-        player.style.top = playerPos[0]+"px";
-        player.style.left = playerPos[1]+"px";
+        //playerPos = [initialY,initialX];
+        player.style.top = initialY+"px";
+        player.style.left = initialX+"px";
         lifeNbElement.innerText = lifeCount;
         bombNbElement.innerText = bombCount;
         let oldEl = container.querySelectorAll("div.tracker,div.bomb");
@@ -278,11 +407,11 @@ window.onload = () => {
             el.style.top = y+"px";
             el.style.left = x+"px";
             container.appendChild(el);
-            foesArray.push([el.id,y,x]);
+            foesArray.push([el.id]);
         }
         inGame = true;
         foesInMovement();
-        console.log(foesArray);
+        //console.log(foesArray);
     }
 
     window.addEventListener("keyup", event => {
@@ -291,7 +420,7 @@ window.onload = () => {
             startGame();
         }
         else if(inGame) {
-            playerPos = gameAction(event.code);
+            gameAction(event.code); //playerPos = 
             //console.log("playerPos "+playerPos);
         }
     });
