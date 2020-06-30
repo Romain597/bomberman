@@ -8,8 +8,8 @@ window.onload = () => {
     const foesMaxCount = 10;
     const maxOffset = 800;
     const foesDelay = 500;
-    const collisionDelay = 1000;
-    const collisionDuration = 6000;
+    const collisionDelay = 500;
+    const collisionDuration = 4000;
     const bombMaxCount = 1000;
     const bombDelay = 3000;
     const hitLifeCount = 1;
@@ -31,7 +31,7 @@ window.onload = () => {
         return [parseInt(window.getComputedStyle(player).getPropertyValue("top")),parseInt(window.getComputedStyle(player).getPropertyValue("left"))];
     }
     function collisionAction() {
-        player.classList.add("collision");
+        player.classList.remove("collision");
         let intervalCollision = setInterval(() => {
             player.classList.toggle("collision");
         }, collisionDelay);
@@ -54,6 +54,22 @@ window.onload = () => {
         });
         return val;
     }
+    function gameFail() {
+        inGame = false;
+        let el = document.createElement("div"); 
+        el.classList.add("bandeau-class");
+        el.id = "bandeau";
+        el.innerHTML = "<p>GAME OVER</p><p>Vous avez perdu !</p>";
+        container.appendChild(el);
+    }
+    function gameWin() {
+        inGame = false;
+        let el = document.createElement("div"); 
+        el.classList.add("bandeau-class");
+        el.id = "bandeau";
+        el.innerHTML = "<p>GAME WIN</p><p>Vous avez gagné !</p>";
+        container.appendChild(el);
+    }
     function gameAction(keyCode)
     {
         let currentPos = playerPos; //getPlayerPos();
@@ -67,7 +83,12 @@ window.onload = () => {
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
-                            collisionAction();
+                            if(lifeCount>0) {
+                                collisionAction();
+                            }
+                            else {
+                                gameFail();
+                            }                       
                         }
                     }
                 break;
@@ -78,7 +99,12 @@ window.onload = () => {
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
-                            collisionAction();
+                            if(lifeCount>0) {
+                                collisionAction();
+                            }
+                            else {
+                                gameFail();
+                            } 
                         }
                     }
                 break;
@@ -89,7 +115,12 @@ window.onload = () => {
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
-                            collisionAction();
+                            if(lifeCount>0) {
+                                collisionAction();
+                            }
+                            else {
+                                gameFail();
+                            } 
                         }
                     }
                 break;
@@ -100,7 +131,12 @@ window.onload = () => {
                         let samePos = testCollision();
                         //console.log(samePos);
                         if(samePos) {
-                            collisionAction();
+                            if(lifeCount>0) {
+                                collisionAction();
+                            }
+                            else {
+                                gameFail();
+                            } 
                         }
                     }
                 break;
@@ -139,10 +175,87 @@ window.onload = () => {
         });
         return false;
     }
+    function getFoesDirection() {
+        let valN = Math.floor(Math.random() * (5 - 1 +1)) + 1;
+        if(valN==1) {
+            return "top";
+        }
+        else if(valN==2) {
+            return "bottom";
+        }
+        else if(valN==3) {
+            return "right";
+        }
+        else if(valN==4) {
+            return "left";
+        }
+        else {
+            return "none";
+        }
+    }
     function foesInMovement() {
+        foesArray.forEach(div => {
+            let intervalRef = setInterval(() => {
+                let el = container.querySelector("#"+div[0]);
+                let offsetY = 0; let valY = parseInt(window.getComputedStyle(el,null).top.replace("px",""));
+                let offsetX = 0; let valX = parseInt(window.getComputedStyle(el,null).left.replace("px",""));
+                let dir = getFoesDirection();
+                //console.log(dir);
+                let mur = false;
+                if(valY<=0 || valY>=maxOffset || valX<=0 || valX>=maxOffset) {
+                    mur = true;
+                }
+                //console.log(mur);
+                switch(dir) {
+                    case "top":
+                        if(mur) {
+                            offsetY += offset;
+                        }
+                        else {
+                            offsetY -= offset;
+                        }
+                    break;
+                    case "bottom":
+                        if(mur) {
+                            offsetY -= offset;
+                        }
+                        else {
+                            offsetY += offset;
+                        }
+                    break;
+                    case "right":
+                        if(mur) {
+                            offsetX += offset;
+                        }
+                        else {
+                            offsetX -= offset; 
+                        }
+                    break;
+                    case "left":
+                        if(mur) {
+                            offsetX -= offset;
+                        }
+                        else {
+                            offsetX += offset; 
+                        }
+                    break;
+                }
+                console.log(offsetY,offsetX);
+                el.style.top = (valY+offsetY)+"px";
+                el.style.left = (valX+offsetX)+"px";
+                console.log(valY+offsetY,valX+offsetX);
+            }, foesDelay);
+            div.push(intervalRef);
+        });
+    }
+    function foesStopMovement() {
         
     }
     function startGame() {
+        let msg = container.querySelector("#bandeau");
+        if(msg!==null) { 
+            container.querySelector("#bandeau").remove(); 
+        }
         playerPos = [initialY,initialX];
         player.style.top = playerPos[0]+"px";
         player.style.left = playerPos[1]+"px";
@@ -167,8 +280,9 @@ window.onload = () => {
             container.appendChild(el);
             foesArray.push([el.id,y,x]);
         }
-        //console.log(foesArray);
         inGame = true;
+        foesInMovement();
+        console.log(foesArray);
     }
 
     window.addEventListener("keyup", event => {
