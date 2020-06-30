@@ -86,8 +86,8 @@ html, body {
     padding: 0;
     border:20px solid gray;
     background-color: lightgrey;
-    width:800px;
-    height:800px;
+    width:850px;
+    height:850px;
     z-index:10;
 }
 .player-class {
@@ -102,6 +102,12 @@ html, body {
     left:0px;
     top:0px;
     z-index:25;
+    opacity: 1;
+    transition:opacity 0.5s;
+    -webkit-transition:opacity 0.5s;
+    -moz-transition:opacity 0.5s;
+    -ms-transition:opacity 0.5s;
+    -o-transition:opacity 0.5s;
 }
 .tracker {
     position: absolute;
@@ -115,6 +121,10 @@ html, body {
     left:50px;
     top:50px;
     z-index:15;
+    opacity: 1;
+}
+.collision {
+    opacity: 0.2;
 }
 .bomb {
     position: absolute;
@@ -133,4 +143,5 @@ html, body {
     left:100px;
     top:100px;
     z-index:20;
+    opacity: 1;
 }
