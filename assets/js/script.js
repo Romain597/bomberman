@@ -24,7 +24,6 @@ window.onload = () => {
     const bombBlinkInterval = 500;
     //const indexX = 1;
     //const indexY = 0;
-    //let hit = false;
     let inGame = false;
     //let playerPos = [initialY,initialX];
     let bombCount = bombMaxCount;
@@ -35,12 +34,7 @@ window.onload = () => {
     let timeoutArray = [];
     //let hitsArray = [];
 
-    //console.log(player);
-    //console.log(container);
-
     function getPos(object,property) {
-        //object!==null && typeof(object)!=='undefined'
-        //console.log(object+" "+property);
         return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
     }
     function getPlayerPos() {
@@ -58,7 +52,8 @@ window.onload = () => {
     }
     function detectFoesInRadius(valY,valX) {
         let indexArray = [];
-        foesArray.forEach((foe,pos) => {
+        for(let pos = 0; pos <= foesArray.length-1; pos++) {
+            let foe = foesArray[pos];
             let el = container.querySelector("#"+foe[0]);
             //console.log("1 "+el);
             let elY = getPos(el,"top"); 
@@ -66,7 +61,7 @@ window.onload = () => {
             if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
                 indexArray.push(pos);
             }
-        });
+        }
         return indexArray;
     }
     function deleteFoesInRadius(foesInRadius) {
@@ -85,56 +80,37 @@ window.onload = () => {
         let interval = setInterval(() => {
             bomb.classList.toggle(bombBlinkClass);
         }, bombBlinkInterval);
-        //let index = timeoutArray.length;
         let fId = setTimeout(() => {
             clearInterval(interval);
             bomb.classList.remove(bombBlinkClass);
             bomb.classList.remove(bombClass);
             bomb.classList.add(explosionClass);
-            //let tempY = valY; //explosionRadius offset
-            //let tempX = valX;
-            bomb.style.top = valY; //tempY;
-            bomb.style.left = valX; //tempX;
-            //let scaleY = 1+(explosionRadius*2);
-            //let scaleX = 1+(explosionRadius*2);
-            //bomb.style.transform = "scale("+scaleX+","+scaleY+")";
+            bomb.style.top = valY;
+            bomb.style.left = valX;
             let scale = 1+(explosionRadius*2);
             bomb.style.transform = "scale("+scale+")";
-            //if(foesArray.length>0) {
-                //let indexB = timeoutArray.length; // indexof
-                let fIdBis = setTimeout(() => {
-                    let foesInRadius = detectFoesInRadius(valY,valX);
-                    //console.log(foesInRadius);
-                    let playerInRadius = detectPlayerInRadius(valY,valX);
-                    //console.log(playerInRadius);
-                    deleteFoesInRadius(foesInRadius);
-                    bomb.remove();
-                    bombsArray.splice(indexInArray,1);
-                    let indexB = timeoutArray.indexOf(fIdBis);; 
-                    timeoutArray.slice(indexB,1);
-                    //timeoutArray[indexB][1] = 0;
-                    if(playerInRadius) {
-                        collisionAction(true);
-                    }
-                    if(foesCount==0 && lifeCount>0) {
-                        gameWin();
-                    }
-                    else if(bombCount==0 || lifeCount==0) {
-                        gameFail();
-                    }
-                }, 500);
-            /*}
-            else {
+            let fIdBis = setTimeout(() => {
+                let foesInRadius = detectFoesInRadius(valY,valX);
+                let playerInRadius = detectPlayerInRadius(valY,valX);
+                deleteFoesInRadius(foesInRadius);
+                bomb.remove();
                 bombsArray.splice(indexInArray,1);
-                gameWin();
-            }*/
-            //timeoutArray.push([fIdBis,1]);
+                let indexB = timeoutArray.indexOf(fIdBis);; 
+                timeoutArray.slice(indexB,1);
+                if(playerInRadius) {
+                    collisionAction(true);
+                }
+                if(foesCount==0 && lifeCount>0) {
+                    gameWin();
+                }
+                else if(bombCount==0 || lifeCount==0) {
+                    gameFail();
+                }
+            }, 500);
             timeoutArray.push(fIdBis);
-            //timeoutArray[index][1] = 0;
             let index = timeoutArray.indexOf(fId); 
             timeoutArray.slice(index,1);
         }, bombDelay);
-        //timeoutArray.push([fId,1]);
         timeoutArray.push(fId);
     }
     function collisionAction(minusLife) {
@@ -142,15 +118,12 @@ window.onload = () => {
         let intervalCollision = setInterval(() => {
             player.classList.toggle("collision");
         }, collisionDelay);
-        //let index = timeoutArray.length;
         let fId = setTimeout(() => {
             clearInterval(intervalCollision);
             player.classList.remove("collision");
             let index = timeoutArray.indexOf(fId);; 
             timeoutArray.slice(index,1);
-            //timeoutArray[index][1] = 0;
         }, collisionDuration);
-        //timeoutArray.push([fId,1]);
         timeoutArray.push(fId);
         if(minusLife) {
             lifeCount -= hitLifeCount;
@@ -166,30 +139,20 @@ window.onload = () => {
             let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
                 val = true;
-                //hitsArray.push([div[0]]);
-                //return true;
             }
         }
         else {
             foesArray.forEach(div => {
-                /*//console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
-                if(div[1]==currentPos[0] && div[2]==currentPos[1]) {
-                    //console.log(div[1]+"=="+currentPos[0]+"&&"+div[2]+"=="+currentPos[1]);
-                    val = true;
-                }*/
                 let tempEl = container.querySelector("#"+div[0]);
                 //console.log("3 "+tempEl);
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
                     val = true;
-                    //hitsArray.push([div[0]]);
-                    //return true;
                 }
             });
         }
         return val;
-        //return false;
     }
     function stopAnimation() {
         foesArray.forEach(foe => {
@@ -244,7 +207,6 @@ window.onload = () => {
                         newPosition[0] -= offset;
                         player.style.top = newPosition[0]+"px";
                         let samePos = testCollision();
-                        //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
                                 collisionAction(true);
@@ -260,7 +222,6 @@ window.onload = () => {
                         newPosition[0] += offset;
                         player.style.top = newPosition[0]+"px";
                         let samePos = testCollision();
-                        //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
                                 collisionAction(true);
@@ -276,7 +237,6 @@ window.onload = () => {
                         newPosition[1] -= offset;
                         player.style.left = newPosition[1]+"px";
                         let samePos = testCollision();
-                        //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
                                 collisionAction(true);
@@ -292,7 +252,6 @@ window.onload = () => {
                         newPosition[1] += offset;
                         player.style.left = newPosition[1]+"px";
                         let samePos = testCollision();
-                        //console.log(samePos);
                         if(samePos) {
                             if(lifeCount>0) {
                                 collisionAction(true);
@@ -322,7 +281,6 @@ window.onload = () => {
                 break;
             }
         }
-        //return newPosition;
     }
     function getRandomIntInclusive() {
         let min = 1;
@@ -332,57 +290,49 @@ window.onload = () => {
     function testPosPlayer(elY,elX) {
         let val = false;
         if(elY>=initialY-(startClearZone*offset) && elY<=initialY+(startClearZone*offset) && elX>=initialX-(startClearZone*offset) && elX<=initialX+(startClearZone*offset)) {
-            //return true;
             val = true;
         }
-        //return false;
         return val;
     }
     function testDirPosFoe(elY,elX,dir) {
         let val = false;
         if(dir!="none" && dir!="") {
             foesArray.forEach(div => {
-                //console.log(div);
                 let tempEl = container.querySelector("#"+div[0]);
                 //console.log("5 "+tempEl);
+                //if(tempEl!==null && typeof(tempEl)!=='undefined') { console.log(div); }
                 //if(tempEl!==null && typeof(tempEl)!=='undefined') {
                     let tempY = getPos(tempEl,"top");
                     let tempX = getPos(tempEl,"left");
                     if(dir=="all") {
                         if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
                             val = true;
-                            //return true;
                         }
                     }
                     else if(dir=="top") {
                         if(elY-offset==tempY && elX==tempX) {
                             val = true;
-                            //return true;
                         }
                     }
                     else if(dir=="bottom") {
                         if(elY+offset==tempY && elX==tempX) {
                             val = true;
-                            //return true;
                         }
                     }
                     else if(dir=="right") {
                         if(elX-offset==tempX && elY==tempY) {
                             val = true;
-                            //return true;
                         }
                     }
                     else if(dir=="left") {
                         if(elX+offset==tempX && elY==tempY) {
                             val = true;
-                            //return true;
                         }
                     }
                 //}
             });
         }
         return val;
-        //return false;
     }
     function testFoePosExist(elY,elX) {
         let val = false;
@@ -392,11 +342,9 @@ window.onload = () => {
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
-                //return true;
                 val = true;
             }
         });
-        //return false;
         return val;
     }
     function getFoesDirection(valY,valX) {
@@ -414,9 +362,6 @@ window.onload = () => {
         else if(valN==4) {
             dir = "left";
         }
-        /*else {
-            return "none";
-        }*/
         if(valY!==null && valX!==null) {
             if(valY<=0 && dir=="top") {
                 dir = "bottom";
@@ -441,36 +386,11 @@ window.onload = () => {
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
-                //console.log(dir);
-                /*if(valY<=0 && dir=="top") {
-                    dir = "bottom";
-                }
-                else if(valY>=maxOffset && dir=="bottom") {
-                    dir = "top";
-                }
-                else if(valX>=maxOffset && dir=="left") {
-                    dir = "right";
-                }
-                else if(valX<=0 && dir=="right") {
-                    dir = "left";
-                }*/
-                /*let mur = true; let i = 0;
-                while(mur) {
-                    if(i>=3) {
-                        mur = false;
-                    }
-                    i++;
-                }
-                if(valY<=0 || valY>=maxOffset || valX<=0 || valX>=maxOffset) {
-                    mur = true;
-                }*/
-                //console.log(mur);
                 let collision = testDirPosFoe(valY,valX,dir);
                 while(collision) {
                     dir = getFoesDirection(valY,valX);
                     collision = testDirPosFoe(valY,valX,dir);
                 }
-                //console.log(collision);
                 switch(dir) {
                     case "top":
                         offsetY -= offset;
@@ -485,27 +405,17 @@ window.onload = () => {
                         offsetX += offset; 
                     break;
                 }
-                //console.log(offsetY,offsetX);
                 el.style.top = (valY+offsetY)+"px";
                 el.style.left = (valX+offsetX)+"px";
                 let samePos = testCollision(el);
-                //console.log(samePos);
                 if(samePos) {
                     if(lifeCount>0) {
-                        //let notHit = true;
-                        /*if(hitsArray.length>0) {
-                            if(hitsArray[hitsArray.length-1][0]==el.id) {
-                                notHit = false;
-                            }
-                        }*/
-                        //collisionAction(notHit);
                         collisionAction(true);
                     }
                     else {
                         gameFail();
                     } 
                 }
-                //console.log(valY+offsetY,valX+offsetX);
             }, foesDelay);
             div.push(intervalRef);
         });
@@ -548,7 +458,6 @@ window.onload = () => {
         }
         inGame = true;
         foesInMovement();
-        //console.log(foesArray);
     }
 
     window.addEventListener("keyup", event => {
@@ -557,8 +466,7 @@ window.onload = () => {
             startGame();
         }
         else if(inGame) {
-            gameAction(event.code); //playerPos = 
-            //console.log("playerPos "+playerPos);
+            gameAction(event.code);
         }
     });
 };
