@@ -89,6 +89,7 @@ html, body {
     width:850px;
     height:850px;
     z-index:10;
+    overflow: hidden;
 }
 .player-class {
     position: absolute;
@@ -103,11 +104,11 @@ html, body {
     top:200px;
     z-index:25;
     opacity: 0.9;
-    transition:opacity 0.2s;
-    -webkit-transition:opacity 0.2s;
-    -moz-transition:opacity 0.2s;
-    -ms-transition:opacity 0.2s;
-    -o-transition:opacity 0.2s;
+    transition:opacity 0.2s ease-in-out;
+    -webkit-transition:opacity 0.2s ease-in-out;
+    -moz-transition:opacity 0.2s ease-in-out;
+    -ms-transition:opacity 0.2s ease-in-out;
+    -o-transition:opacity 0.2s ease-in-out;
 }
 .tracker {
     position: absolute;
@@ -123,6 +124,47 @@ html, body {
     z-index:15;
     opacity: 1;
 }
+.explosion {
+    position: absolute;
+    display: block;
+    margin:0;
+    padding: 0;
+    border:0;
+    width:50px;
+    height:50px;
+    border-radius:0%;
+    -webkit-border-radius:0%;
+    -moz-border-radius:0%;
+    -ms-border-radius:0%;
+    -o-border-radius:0%;
+    left:100px;
+    top:100px;
+    z-index:20;
+    background-color: orangered;
+    opacity: 0.8;
+    transition: all .1s linear;
+    -webkit-transition: all .1s linear;
+    -moz-transition: all .1s linear;
+    -ms-transition: all .1s linear;
+    -o-transition: all .1s linear;
+    transform: scale(1);
+    -webkit-transform: scale(1);
+    -moz-transform: scale(1);
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+}
+/*.explosion-blast {
+    transition: all .1s linear;
+    -webkit-transition: all .1s linear;
+    -moz-transition: all .1s linear;
+    -ms-transition: all .1s linear;
+    -o-transition: all .1s linear;
+    transform: scale(3);
+    -webkit-transform: scale(3);
+    -moz-transform: scale(3);
+    -ms-transform: scale(3);
+    -o-transform: scale(3);
+}*/
 .collision {
     opacity: 0.1;
 }
@@ -144,6 +186,14 @@ html, body {
     top:100px;
     z-index:20;
     opacity: 1;
+    transition: opacity .2s ease-in-out;
+    -webkit-transition: opacity .2s ease-in-out;
+    -moz-transition: opacity .2s ease-in-out;
+    -ms-transition: opacity .2s ease-in-out;
+    -o-transition: opacity .2s ease-in-out;
+}
+.bomb-blink {
+    opacity: 0.1;
 }
 .bandeau-class {
     position: absolute;

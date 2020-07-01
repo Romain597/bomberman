@@ -18,6 +18,10 @@ window.onload = () => {
     const initialX = 400;
     const initialY = 400;
     const startClearZone = 2;
+    const explosionRadius = 2;
+    const explosionClass = "explosion";
+    const bombBlinkClass = "bomb-blink"
+    const bombBlinkInterval = 500;
     let hit = false;
     let inGame = false;
     //let playerPos = [initialY,initialX];
@@ -26,23 +30,90 @@ window.onload = () => {
     let foesCount = foesMaxCount;
     let foesArray = [];
     let bombsArray = [];
-    let hitsArray = [];
+    let timeoutArray = [];
+    //let hitsArray = [];
 
     function getPos(object,property) {
+        //object!==null && typeof(object)!=='undefined'
         return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
     }
     function getPlayerPos() {
         return [getPos(player,"top"),getPos(player,"left")];
+    }
+    function deleteFoesInRadius(valY,valX) {
+        let indexArray = [];
+        foesArray.forEach(foe => {
+            if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
+                //indexArray.push(foe.index);
+            }
+        });
+        if(indexArray.length>0) {
+            indexArray.forEach(index => {
+                let el = container.querySelector("#"+foesArray[index][0]);
+                el.remove();
+                foesArray.slice(index,1);
+            });
+        }
+    }
+    function bombAction(indexInArray,valY,valX) {
+        let bomb = container.querySelector("#"+bombsArray[indexInArray]);
+        let interval = setInterval(() => {
+            bomb.classList.toggle(bombBlinkClass);
+        }, bombBlinkInterval);
+        //let index = timeoutArray.length;
+        let fId = setTimeout(() => {
+            clearInterval(interval);
+            bomb.classList.remove(bombBlinkClass);
+            bomb.classList.remove(bombClass);
+            bomb.classList.add(explosionClass);
+            //let tempY = valY; //explosionRadius offset
+            //let tempX = valX;
+            bomb.style.top = valY; //tempY;
+            bomb.style.left = valX; //tempX;
+            //let scaleY = 1+(explosionRadius*2);
+            //let scaleX = 1+(explosionRadius*2);
+            //bomb.style.transform = "scale("+scaleX+","+scaleY+")";
+            let scale = 1+(explosionRadius*2);
+            bomb.style.transform = "scale("+scale+")";
+            deleteFoesInRadius(valY,valX);
+            if(foesArray.length>0) {
+                //let indexB = timeoutArray.length; // indexof
+                let fIdBis = setTimeout(() => {
+                    bomb.remove();
+                    bombsArray.splice(indexInArray,1);
+                    let indexB = timeoutArray.indexOf(fIdBis);; 
+                    timeoutArray.slice(indexB,1);
+                    //timeoutArray[indexB][1] = 0;
+                }, 1000);
+            }
+            else {
+                bombsArray.splice(indexInArray,1);
+                gameWin();
+            }
+            //timeoutArray.push([fIdBis,1]);
+            timeoutArray.push(fIdBis);
+            //timeoutArray[index][1] = 0;
+            let index = timeoutArray.indexOf(fId); 
+            timeoutArray.slice(index,1);
+        }, bombDelay);
+        //timeoutArray.push([fId,1]);
+        timeoutArray.push(fId);
     }
     function collisionAction(minusLife) {
         player.classList.remove("collision");
         let intervalCollision = setInterval(() => {
             player.classList.toggle("collision");
         }, collisionDelay);
-        setTimeout(() => {
+        //let index = timeoutArray.length;
+        let fId = setTimeout(() => {
             clearInterval(intervalCollision);
             player.classList.remove("collision");
+            let index = timeoutArray.indexOf(fId);; 
+            timeoutArray.slice(index,1);
+            //timeoutArray[index][1] = 0;
         }, collisionDuration);
+        //timeoutArray.push([fId,1]);
+        timeoutArray.push(fId);
         if(minusLife) {
             lifeCount--;
             lifeNbElement.innerText = lifeCount;
@@ -51,13 +122,13 @@ window.onload = () => {
     function testCollision(foe) {
         let playerPos = getPlayerPos();
         let val = false;
-        if(foe!==null) {
-            let tempEl = foe;
-            let tempY = getPos(tempEl,"top");
-            let tempX = getPos(tempEl,"left");
+        if(foe!==null && typeof(foe)!=='undefined') {
+            //console.log(foe);
+            let tempY = getPos(foe,"top");
+            let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
                 val = true;
-                hitsArray.push([div[0]]);
+                //hitsArray.push([div[0]]);
                 //return true;
             }
         }
@@ -73,7 +144,7 @@ window.onload = () => {
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
                     val = true;
-                    hitsArray.push([div[0]]);
+                    //hitsArray.push([div[0]]);
                     //return true;
                 }
             });
@@ -189,8 +260,10 @@ window.onload = () => {
                             el.style.left = playerPos[1]+"px";
                             container.appendChild(el);
                             bombsArray.push([el.id]);
+                            let index = bombsArray.length-1;
                             bombCount--;
                             bombNbElement.innerText = bombCount;
+                            bombAction(index,playerPos[0],playerPos[1]);
                         }
                     }
                 break;
@@ -361,11 +434,11 @@ window.onload = () => {
                 if(samePos) {
                     if(lifeCount>0) {
                         let notHit = true;
-                        if(hitsArray.length>0) {
+                        /*if(hitsArray.length>0) {
                             if(hitsArray[hitsArray.length-1][0]==el.id) {
                                 notHit = false;
                             }
-                        }
+                        }*/
                         collisionAction(notHit);
                     }
                     else {
