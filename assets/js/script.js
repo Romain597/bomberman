@@ -10,7 +10,7 @@ window.onload = () => {
     const foesDelay = 500;
     const collisionDelay = 500;
     const collisionDuration = 4000;
-    const bombMaxCount = 1000;
+    const bombMaxCount = 10;
     const bombDelay = 3000;
     const hitLifeCount = 1;
     const foesClass = "tracker";
@@ -22,7 +22,9 @@ window.onload = () => {
     const explosionClass = "explosion";
     const bombBlinkClass = "bomb-blink"
     const bombBlinkInterval = 500;
-    let hit = false;
+    //const indexX = 1;
+    //const indexY = 0;
+    //let hit = false;
     let inGame = false;
     //let playerPos = [initialY,initialX];
     let bombCount = bombMaxCount;
@@ -33,25 +35,48 @@ window.onload = () => {
     let timeoutArray = [];
     //let hitsArray = [];
 
+    //console.log(player);
+    //console.log(container);
+
     function getPos(object,property) {
         //object!==null && typeof(object)!=='undefined'
+        //console.log(object+" "+property);
         return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
     }
     function getPlayerPos() {
         return [getPos(player,"top"),getPos(player,"left")];
     }
-    function deleteFoesInRadius(valY,valX) {
+    function detectPlayerInRadius(valY,valX) {
+        let val = false;
+        let player = getPlayerPos();
+        let elY = player[0]; 
+        let elX = player[1]; 
+        if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
+            val = true;
+        }
+        return val;
+    }
+    function detectFoesInRadius(valY,valX) {
         let indexArray = [];
-        foesArray.forEach(foe => {
+        foesArray.forEach((foe,pos) => {
+            let el = container.querySelector("#"+foe[0]);
+            //console.log("1 "+el);
+            let elY = getPos(el,"top"); 
+            let elX = getPos(el,"left"); 
             if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
-                //indexArray.push(foe.index);
+                indexArray.push(pos);
             }
         });
-        if(indexArray.length>0) {
-            indexArray.forEach(index => {
+        return indexArray;
+    }
+    function deleteFoesInRadius(foesInRadius) {
+        if(foesInRadius.length>0) {
+            foesInRadius.forEach(index => {
                 let el = container.querySelector("#"+foesArray[index][0]);
+                clearInterval(foesArray[index][1]);
                 el.remove();
                 foesArray.slice(index,1);
+                foesCount--;
             });
         }
     }
@@ -75,21 +100,34 @@ window.onload = () => {
             //bomb.style.transform = "scale("+scaleX+","+scaleY+")";
             let scale = 1+(explosionRadius*2);
             bomb.style.transform = "scale("+scale+")";
-            deleteFoesInRadius(valY,valX);
-            if(foesArray.length>0) {
+            //if(foesArray.length>0) {
                 //let indexB = timeoutArray.length; // indexof
                 let fIdBis = setTimeout(() => {
+                    let foesInRadius = detectFoesInRadius(valY,valX);
+                    //console.log(foesInRadius);
+                    let playerInRadius = detectPlayerInRadius(valY,valX);
+                    //console.log(playerInRadius);
+                    deleteFoesInRadius(foesInRadius);
                     bomb.remove();
                     bombsArray.splice(indexInArray,1);
                     let indexB = timeoutArray.indexOf(fIdBis);; 
                     timeoutArray.slice(indexB,1);
                     //timeoutArray[indexB][1] = 0;
-                }, 1000);
-            }
+                    if(playerInRadius) {
+                        collisionAction(true);
+                    }
+                    if(foesCount==0 && lifeCount>0) {
+                        gameWin();
+                    }
+                    else if(bombCount==0 || lifeCount==0) {
+                        gameFail();
+                    }
+                }, 500);
+            /*}
             else {
                 bombsArray.splice(indexInArray,1);
                 gameWin();
-            }
+            }*/
             //timeoutArray.push([fIdBis,1]);
             timeoutArray.push(fIdBis);
             //timeoutArray[index][1] = 0;
@@ -115,7 +153,7 @@ window.onload = () => {
         //timeoutArray.push([fId,1]);
         timeoutArray.push(fId);
         if(minusLife) {
-            lifeCount--;
+            lifeCount -= hitLifeCount;
             lifeNbElement.innerText = lifeCount;
         }
     }
@@ -123,7 +161,7 @@ window.onload = () => {
         let playerPos = getPlayerPos();
         let val = false;
         if(foe!==null && typeof(foe)!=='undefined') {
-            //console.log(foe);
+            //console.log("2 "+foe);
             let tempY = getPos(foe,"top");
             let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -140,6 +178,7 @@ window.onload = () => {
                     val = true;
                 }*/
                 let tempEl = container.querySelector("#"+div[0]);
+                //console.log("3 "+tempEl);
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -152,8 +191,20 @@ window.onload = () => {
         return val;
         //return false;
     }
+    function stopAnimation() {
+        foesArray.forEach(foe => {
+            clearInterval(foe[1]);
+        });
+        let len = timeoutArray.length;
+        for(let i = 0; i <= len-1; i++) {
+            if(typeof(timeoutArray[i])!=='undefined') {
+                clearTimeout(timeoutArray[i]);
+            }
+        }
+    }
     function gameFail() {
         inGame = false;
+        stopAnimation();
         let el = document.createElement("div"); 
         el.classList.add("bandeau-class");
         el.id = "bandeau";
@@ -162,6 +213,7 @@ window.onload = () => {
     }
     function gameWin() {
         inGame = false;
+        stopAnimation();
         let el = document.createElement("div"); 
         el.classList.add("bandeau-class");
         el.id = "bandeau";
@@ -172,6 +224,7 @@ window.onload = () => {
         let val = false;
         if(bombsArray.length>0) {
             let tempEl = container.querySelector("#"+bombsArray[bombsArray.length-1][0]);
+            //console.log("4 "+tempEl);
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -289,39 +342,43 @@ window.onload = () => {
         let val = false;
         if(dir!="none" && dir!="") {
             foesArray.forEach(div => {
+                //console.log(div);
                 let tempEl = container.querySelector("#"+div[0]);
-                let tempY = getPos(tempEl,"top");
-                let tempX = getPos(tempEl,"left");
-                if(dir=="all") {
-                    if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
-                        val = true;
-                        //return true;
+                //console.log("5 "+tempEl);
+                //if(tempEl!==null && typeof(tempEl)!=='undefined') {
+                    let tempY = getPos(tempEl,"top");
+                    let tempX = getPos(tempEl,"left");
+                    if(dir=="all") {
+                        if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
+                            val = true;
+                            //return true;
+                        }
                     }
-                }
-                else if(dir=="top") {
-                    if(elY-offset==tempY && elX==tempX) {
-                        val = true;
-                        //return true;
+                    else if(dir=="top") {
+                        if(elY-offset==tempY && elX==tempX) {
+                            val = true;
+                            //return true;
+                        }
                     }
-                }
-                else if(dir=="bottom") {
-                    if(elY+offset==tempY && elX==tempX) {
-                        val = true;
-                        //return true;
+                    else if(dir=="bottom") {
+                        if(elY+offset==tempY && elX==tempX) {
+                            val = true;
+                            //return true;
+                        }
                     }
-                }
-                else if(dir=="right") {
-                    if(elX-offset==tempX && elY==tempY) {
-                        val = true;
-                        //return true;
+                    else if(dir=="right") {
+                        if(elX-offset==tempX && elY==tempY) {
+                            val = true;
+                            //return true;
+                        }
                     }
-                }
-                else if(dir=="left") {
-                    if(elX+offset==tempX && elY==tempY) {
-                        val = true;
-                        //return true;
+                    else if(dir=="left") {
+                        if(elX+offset==tempX && elY==tempY) {
+                            val = true;
+                            //return true;
+                        }
                     }
-                }
+                //}
             });
         }
         return val;
@@ -331,6 +388,7 @@ window.onload = () => {
         let val = false;
         foesArray.forEach(div => {
             let tempEl = container.querySelector("#"+div[0]);
+            //console.log("6 "+tempEl);
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -379,6 +437,7 @@ window.onload = () => {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
                 let el = container.querySelector("#"+div[0]);
+                //console.log("7 "+el);
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
@@ -433,13 +492,14 @@ window.onload = () => {
                 //console.log(samePos);
                 if(samePos) {
                     if(lifeCount>0) {
-                        let notHit = true;
+                        //let notHit = true;
                         /*if(hitsArray.length>0) {
                             if(hitsArray[hitsArray.length-1][0]==el.id) {
                                 notHit = false;
                             }
                         }*/
-                        collisionAction(notHit);
+                        //collisionAction(notHit);
+                        collisionAction(true);
                     }
                     else {
                         gameFail();
@@ -450,14 +510,18 @@ window.onload = () => {
             div.push(intervalRef);
         });
     }
-    function foesStopMovement() {
-        
-    }
     function startGame() {
         let msg = container.querySelector("#bandeau");
         if(msg!==null) { 
             container.querySelector("#bandeau").remove(); 
         }
+        inGame = false;
+        bombCount = bombMaxCount;
+        lifeCount = lifeMaxCount;
+        foesCount = foesMaxCount;
+        foesArray = [];
+        bombsArray = [];
+        timeoutArray = [];
         //playerPos = [initialY,initialX];
         player.style.top = initialY+"px";
         player.style.left = initialX+"px";
