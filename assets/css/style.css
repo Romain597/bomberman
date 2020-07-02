@@ -166,7 +166,7 @@ html, body {
     -o-transform: scale(3);
 }*/
 .collision {
-    opacity: 0.1;
+    opacity: 0.2;
 }
 .bomb {
     position: absolute;

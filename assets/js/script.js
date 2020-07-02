@@ -10,6 +10,7 @@ window.onload = () => {
     const foesDelay = 500;
     const collisionDelay = 500;
     const collisionDuration = 4000;
+    const collisionClass = "collision";
     const bombMaxCount = 10;
     const bombDelay = 3000;
     const hitLifeCount = 1;
@@ -32,7 +33,10 @@ window.onload = () => {
     let foesArray = [];
     let bombsArray = [];
     let timeoutArray = [];
+    let intervalArray = [];
     //let hitsArray = [];
+
+    // bug : life count -1 quand bombe boom
 
     function getPos(object,property) {
         return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
@@ -55,7 +59,6 @@ window.onload = () => {
         for(let pos = 0; pos <= foesArray.length-1; pos++) {
             let foe = foesArray[pos];
             let el = container.querySelector("#"+foe[0]);
-            //console.log("1 "+el);
             let elY = getPos(el,"top"); 
             let elX = getPos(el,"left"); 
             if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
@@ -66,12 +69,16 @@ window.onload = () => {
     }
     function deleteFoesInRadius(foesInRadius) {
         if(foesInRadius.length>0) {
+            console.log(foesInRadius+" "+foesArray);
+            let indexDown = 0;
             foesInRadius.forEach(index => {
-                let el = container.querySelector("#"+foesArray[index][0]);
-                clearInterval(foesArray[index][1]);
+                let indexUpdate = index-indexDown;
+                let el = container.querySelector("#"+foesArray[indexUpdate][0]);
+                clearInterval(foesArray[indexUpdate][1]);
                 el.remove();
-                foesArray.slice(index,1);
+                foesArray.splice(indexUpdate,1);
                 foesCount--;
+                indexDown++;
             });
         }
     }
@@ -80,7 +87,10 @@ window.onload = () => {
         let interval = setInterval(() => {
             bomb.classList.toggle(bombBlinkClass);
         }, bombBlinkInterval);
+        intervalArray.push(interval);
         let fId = setTimeout(() => {
+            let indexI = intervalArray.indexOf(interval);
+            intervalArray.splice(indexI,1);
             clearInterval(interval);
             bomb.classList.remove(bombBlinkClass);
             bomb.classList.remove(bombClass);
@@ -89,15 +99,26 @@ window.onload = () => {
             bomb.style.left = valX;
             let scale = 1+(explosionRadius*2);
             bomb.style.transform = "scale("+scale+")";
+            let foesInRadiusA = detectFoesInRadius(valY,valX);
+            //let playerInRadius = false;
+            let playerInRadiusA = detectPlayerInRadius(valY,valX);
+            if(playerInRadiusA) {
+                collisionAction(true);
+            }
             let fIdBis = setTimeout(() => {
-                let foesInRadius = detectFoesInRadius(valY,valX);
-                let playerInRadius = detectPlayerInRadius(valY,valX);
+                let foesInRadiusB = detectFoesInRadius(valY,valX);
+                let playerInRadiusB = detectPlayerInRadius(valY,valX);
+                let foesInRadius = foesInRadiusA;
+                foesInRadiusB.forEach(item => foesInRadius.includes(item) ? null : foesInRadius.push(item));
+                /*if(playerInRadiusA==true || playerInRadiusB==true) {
+                    playerInRadius = true;
+                }*/
                 deleteFoesInRadius(foesInRadius);
                 bomb.remove();
                 bombsArray.splice(indexInArray,1);
-                let indexB = timeoutArray.indexOf(fIdBis);; 
-                timeoutArray.slice(indexB,1);
-                if(playerInRadius) {
+                let indexB = timeoutArray.indexOf(fIdBis);
+                timeoutArray.splice(indexB,1);
+                if(playerInRadiusB==true && playerInRadiusA==false) {
                     collisionAction(true);
                 }
                 if(foesCount==0 && lifeCount>0) {
@@ -106,23 +127,26 @@ window.onload = () => {
                 else if(bombCount==0 || lifeCount==0) {
                     gameFail();
                 }
-            }, 500);
+            }, 300);
             timeoutArray.push(fIdBis);
-            let index = timeoutArray.indexOf(fId); 
-            timeoutArray.slice(index,1);
+            let indexT = timeoutArray.indexOf(fId); 
+            timeoutArray.splice(indexT,1);
         }, bombDelay);
         timeoutArray.push(fId);
     }
     function collisionAction(minusLife) {
-        player.classList.remove("collision");
+        player.classList.remove(collisionClass);
         let intervalCollision = setInterval(() => {
-            player.classList.toggle("collision");
+            player.classList.toggle(collisionClass);
         }, collisionDelay);
+        intervalArray.push(intervalCollision);
         let fId = setTimeout(() => {
+            let indexI = intervalArray.indexOf(intervalCollision);
+            intervalArray.splice(indexI,1);
             clearInterval(intervalCollision);
-            player.classList.remove("collision");
-            let index = timeoutArray.indexOf(fId);; 
-            timeoutArray.slice(index,1);
+            player.classList.remove(collisionClass);
+            let indexT = timeoutArray.indexOf(fId);
+            timeoutArray.splice(indexT,1);
         }, collisionDuration);
         timeoutArray.push(fId);
         if(minusLife) {
@@ -134,7 +158,6 @@ window.onload = () => {
         let playerPos = getPlayerPos();
         let val = false;
         if(foe!==null && typeof(foe)!=='undefined') {
-            //console.log("2 "+foe);
             let tempY = getPos(foe,"top");
             let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -144,7 +167,6 @@ window.onload = () => {
         else {
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
-                //console.log("3 "+tempEl);
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -158,10 +180,17 @@ window.onload = () => {
         foesArray.forEach(foe => {
             clearInterval(foe[1]);
         });
-        let len = timeoutArray.length;
-        for(let i = 0; i <= len-1; i++) {
-            if(typeof(timeoutArray[i])!=='undefined') {
-                clearTimeout(timeoutArray[i]);
+        player.classList.remove(collisionClass);
+        let lenI = intervalArray.length;
+        for(let i = 0; i <= lenI-1; i++) {
+            if(typeof(intervalArray[i])!=='undefined') {
+                clearInterval(intervalArray[i]);
+            }
+        }
+        let lenT = timeoutArray.length;
+        for(let j = 0; j <= lenT-1; j++) {
+            if(typeof(timeoutArray[j])!=='undefined') {
+                clearTimeout(timeoutArray[j]);
             }
         }
     }
@@ -187,7 +216,6 @@ window.onload = () => {
         let val = false;
         if(bombsArray.length>0) {
             let tempEl = container.querySelector("#"+bombsArray[bombsArray.length-1][0]);
-            //console.log("4 "+tempEl);
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -299,37 +327,33 @@ window.onload = () => {
         if(dir!="none" && dir!="") {
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
-                //console.log("5 "+tempEl);
-                //if(tempEl!==null && typeof(tempEl)!=='undefined') { console.log(div); }
-                //if(tempEl!==null && typeof(tempEl)!=='undefined') {
-                    let tempY = getPos(tempEl,"top");
-                    let tempX = getPos(tempEl,"left");
-                    if(dir=="all") {
-                        if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
-                            val = true;
-                        }
+                let tempY = getPos(tempEl,"top");
+                let tempX = getPos(tempEl,"left");
+                if(dir=="all") {
+                    if((elY-offset==tempY && elX==tempX) || (elY+offset==tempY && elX==tempX) || (elX-offset==tempX && elY==tempY) || (elX+offset==tempX && elY==tempY)) {
+                        val = true;
                     }
-                    else if(dir=="top") {
-                        if(elY-offset==tempY && elX==tempX) {
-                            val = true;
-                        }
+                }
+                else if(dir=="top") {
+                    if(elY-offset==tempY && elX==tempX) {
+                        val = true;
                     }
-                    else if(dir=="bottom") {
-                        if(elY+offset==tempY && elX==tempX) {
-                            val = true;
-                        }
+                }
+                else if(dir=="bottom") {
+                    if(elY+offset==tempY && elX==tempX) {
+                        val = true;
                     }
-                    else if(dir=="right") {
-                        if(elX-offset==tempX && elY==tempY) {
-                            val = true;
-                        }
+                }
+                else if(dir=="right") {
+                    if(elX-offset==tempX && elY==tempY) {
+                        val = true;
                     }
-                    else if(dir=="left") {
-                        if(elX+offset==tempX && elY==tempY) {
-                            val = true;
-                        }
+                }
+                else if(dir=="left") {
+                    if(elX+offset==tempX && elY==tempY) {
+                        val = true;
                     }
-                //}
+                }
             });
         }
         return val;
@@ -338,7 +362,6 @@ window.onload = () => {
         let val = false;
         foesArray.forEach(div => {
             let tempEl = container.querySelector("#"+div[0]);
-            //console.log("6 "+tempEl);
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -382,7 +405,6 @@ window.onload = () => {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
                 let el = container.querySelector("#"+div[0]);
-                //console.log("7 "+el);
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
