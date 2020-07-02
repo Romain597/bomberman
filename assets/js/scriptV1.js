@@ -3,35 +3,27 @@ window.onload = () => {
     const lifeNbElement = document.querySelector("#life-count");
     const bombNbElement = document.querySelector("#bomb-count");
     const container = document.querySelector("#game-container");
-    const foesNbElement = document.querySelector("#foe-count");
-    const levelNbElement = document.querySelector("#level-count");
-    const levelToBeginElement = document.querySelector("#begin-time");
     const offset = 50;
-    const maxOffset = 700;
+    const lifeMaxCount = 10;
+    const foesMaxCount = 10;
+    const maxOffset = 800;
     const foesDelay = 500;
     const collisionDelay = 500;
     const collisionDuration = 4000;
     const collisionClass = "collision";
+    const bombMaxCount = 10;
     const bombDelay = 3000;
     const hitLifeCount = 1;
     const foesClass = "tracker";
-    const bombClass = "bomb";
-    const wallClass = "wall";
+    const bombClass = "bomb"
     const initialX = 400;
     const initialY = 400;
     const startClearZone = 2;
     const explosionRadius = 2;
     const explosionClass = "explosion";
-    const bombBlinkClass = "bomb-blink";
+    const bombBlinkClass = "bomb-blink"
     const bombBlinkInterval = 500;
     const sameHit = false;
-    const maxLevel = 5;
-    const levelDifficultyIncrementation = 1;
-    const levelTimeToBegin = 5;
-    let currentLevel = 1;
-    let bombMaxCount = 10;
-    let lifeMaxCount = 10;
-    let foesMaxCount = 10;
     let inGame = false;
     let bombCount = bombMaxCount;
     let lifeCount = lifeMaxCount;
@@ -81,6 +73,7 @@ window.onload = () => {
     }
     function deleteFoesInRadius(foesInRadius) {
         if(foesInRadius.length>0) {
+            console.log(foesInRadius+" "+foesArray);
             let indexDown = 0;
             foesInRadius.forEach(index => {
                 let indexUpdate = index-indexDown;
@@ -91,7 +84,6 @@ window.onload = () => {
                 foesCount--;
                 indexDown++;
             });
-            foesNbElement.innerText = foesCount;
         }
     }
     function bombAction(indexInArray,valY,valX) {
@@ -208,31 +200,6 @@ window.onload = () => {
             }
         }
     }
-    function nextLevel() {
-        let el = document.createElement("div");
-        el.classList.add("bandeau-class");
-        el.id = "bandeau";
-        el.innerHTML = '<p>LEVEL WIN</p><p>Vous avez gagné le niveau '+currentLevel+' !</p><p>Prochain niveau dans <span id="begin-time">'+levelTimeToBegin+'</span> secondes !</p>';
-        container.appendChild(el);
-        let interval = setInterval(() => {
-            let time = parseInt(levelToBeginElement.innerText)-1; if(time<0) { time = 0; }
-            levelToBeginElement.innerText = time;
-        }, 1000);
-        intervalArray.push(interval);
-        let timeout = setTimeout(() => {
-            let indexI = intervalArray.indexOf(interval);
-            intervalArray.splice(indexI,1);
-            clearInterval(interval);
-            currentLevel++;
-            init(currentLevel);
-            generatedElements("foe");
-            inGame = true;
-            foesInMovement();
-            let indexT = timeoutArray.indexOf(timeout);
-            timeoutArray.splice(indexT,1);
-        }, (levelTimeToBegin*1000));
-        timeoutArray.push(timeout);
-    }
     function gameFail() {
         inGame = false;
         stopAnimation();
@@ -245,16 +212,11 @@ window.onload = () => {
     function gameWin() {
         inGame = false;
         stopAnimation();
-        if(currentLevel<maxLevel) {
-            nextLevel();
-        }
-        else {
-            let el = document.createElement("div");
-            el.classList.add("bandeau-class");
-            el.id = "bandeau";
-            el.innerHTML = "<p>GAME WIN</p><p>Vous avez gagné le jeux après "+maxLevel+" niveaux gagnés !</p>";
-            container.appendChild(el);
-        }
+        let el = document.createElement("div"); 
+        el.classList.add("bandeau-class");
+        el.id = "bandeau";
+        el.innerHTML = "<p>GAME WIN</p><p>Vous avez gagné !</p>";
+        container.appendChild(el);
     }
     function testBombPosExist(elY,elX) {
         let val = false;
@@ -515,91 +477,45 @@ window.onload = () => {
             div.push(intervalRef);
         });
     }
-    function init(level) {
+    function startGame() {
+        let msg = container.querySelector("#bandeau");
+        if(msg!==null) { 
+            container.querySelector("#bandeau").remove(); 
+        }
         inGame = false;
-        if(typeof(level)==="number" && Number.isInteger(level)) {
-            currentLevel = level;
-            bombMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
-            lifeMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
-            foesMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
-        }
-        else {
-            currentLevel = 1;
-            bombMaxCount = 10;
-            lifeMaxCount = 10;
-            foesMaxCount = 10;
-        }
         bombCount = bombMaxCount;
         lifeCount = lifeMaxCount;
         foesCount = foesMaxCount;
         foesArray = [];
         bombsArray = [];
         timeoutArray = [];
-        intervalArray = [];
-        hitsArray = [];
         player.style.top = initialY+"px";
         player.style.left = initialX+"px";
         lifeNbElement.innerText = lifeCount;
         bombNbElement.innerText = bombCount;
-        levelNbElement.innerText = currentLevel;
-        foesNbElement.innerText = foesCount;
-        document.querySelector(".game-table-container > p:last-of-type").style.visibility = "visible";
-        let oldEl = container.querySelectorAll("div."+foesClass+",div."+bombClass+",div."+wallClass);
+        let oldEl = container.querySelectorAll("div.tracker,div.bomb");
         oldEl.forEach(div => {
             div.remove();
         });
-        let msg = container.querySelector("#bandeau");
-        if(typeof(msg)!=='undefined') { //msg!==null && 
-            container.querySelector("#bandeau").remove(); 
+        for(let i = 1;i<=foesCount;i++) {
+            let x = (getRandomIntInclusive()-1)*offset;
+            let y = (getRandomIntInclusive()-1)*offset;
+            while(testFoePosExist(y,x) || testPosPlayer(y,x)) {
+                x = (getRandomIntInclusive()-1)*offset;
+                y = (getRandomIntInclusive()-1)*offset;
+            }
+            let el = document.createElement("div"); 
+            el.classList.add(foesClass);
+            el.id = "foe"+i;
+            el.style.top = y+"px";
+            el.style.left = x+"px";
+            container.appendChild(el);
+            foesArray.push([el.id]);
         }
-    }
-    function generatedElements(typeEl) {
-        switch(typeEl) {
-            case "foe":
-                for(let i = 1;i<=foesCount;i++) {
-                    let x = (getRandomIntInclusive()-1)*offset;
-                    let y = (getRandomIntInclusive()-1)*offset;
-                    while(testFoePosExist(y,x) || testPosPlayer(y,x)) {
-                        x = (getRandomIntInclusive()-1)*offset;
-                        y = (getRandomIntInclusive()-1)*offset;
-                    }
-                    let el = document.createElement("div"); 
-                    el.classList.add(foesClass);
-                    el.id = "foe"+i;
-                    el.style.top = y+"px";
-                    el.style.left = x+"px";
-                    container.appendChild(el);
-                    foesArray.push([el.id]);
-                }
-            break;
-            case "wall":
-
-            break;
-            default:
-                for(let i = 1;i<=foesCount;i++) {
-                    let x = (getRandomIntInclusive()-1)*offset;
-                    let y = (getRandomIntInclusive()-1)*offset;
-                    while(testFoePosExist(y,x) || testPosPlayer(y,x)) {
-                        x = (getRandomIntInclusive()-1)*offset;
-                        y = (getRandomIntInclusive()-1)*offset;
-                    }
-                    let el = document.createElement("div"); 
-                    el.classList.add(foesClass);
-                    el.id = "foe"+i;
-                    el.style.top = y+"px";
-                    el.style.left = x+"px";
-                    container.appendChild(el);
-                    foesArray.push([el.id]);
-                }
-        }
-    }
-    function startGame() {
-        init();
-        generatedElements("foe");
         inGame = true;
         foesInMovement();
     }
-    // key listener
+
     window.addEventListener("keyup", event => {
         if(event.code=="Digit0" || event.code=="Numpad0") {
             startGame();
