@@ -1,4 +1,6 @@
 window.onload = () => {
+    // constants
+    //  elements container
     const player = document.querySelector("#player");
     const lifeNbElement = document.querySelector("#life-count");
     const bombNbElement = document.querySelector("#bomb-count");
@@ -6,28 +8,30 @@ window.onload = () => {
     const foesNbElement = document.querySelector("#foe-count");
     const levelNbElement = document.querySelector("#level-count");
     const levelToBeginElement = document.querySelector("#begin-time");
-    const offset = 50;
-    const maxOffset = 700;
-    const foesDelay = 500;
-    const collisionDelay = 500;
-    const collisionDuration = 4000;
-    const collisionClass = "collision";
-    const bombDelay = 3000;
-    const hitLifeCount = 1;
-    const foesClass = "tracker";
-    const bombClass = "bomb";
-    const wallClass = "wall";
-    const initialX = 400;
-    const initialY = 400;
-    const startClearZone = 2;
-    const explosionRadius = 2;
-    const explosionClass = "explosion";
-    const bombBlinkClass = "bomb-blink";
-    const bombBlinkInterval = 500;
-    const sameHit = false;
-    const maxLevel = 5;
-    const levelDifficultyIncrementation = 1;
-    const levelTimeToBegin = 5;
+    //  game parameters
+    const offset = 50; // pixel size for 1 square
+    const maxOffset = 700; // maximun pixel size offset for elements
+    const foesDelay = 500; // delay in miliseconds between each foe movement
+    const collisionDelay = 500; // delay in miliseconds between each player blink
+    const collisionDuration = 4000; // duration in miliseconds for the player blink action
+    const collisionClass = "collision"; // CSS class for the player blink action
+    const bombDelay = 3000; // delay in miliseconds before the explosion of the bomb
+    const hitLifeCount = 1; // number of life to remove in the life counter
+    const foesClass = "tracker"; // CSS class for foe element
+    const bombClass = "bomb"; // CSS class for bomb element
+    //const wallClass = "wall"; // CSS class for wall element
+    const initialX = 400; // initial horizontal player position in pixel
+    const initialY = 400; // initial vertical player position in pixel
+    const startClearZone = 2; // number of grid square for the clear zone arround the player at the start
+    const explosionRadius = 2; // number of grid square for the explosion radius
+    const explosionClass = "explosion"; // CSS class for bomb element at the explosion
+    const bombBlinkClass = "bomb-blink"; // CSS class for bomb element when it blink
+    const bombBlinkInterval = 500; // delay in miliseconds between each bomb blink
+    const sameHit = false; // to avoid ( false ) or not ( true ) the counting of the same hit when a player move at the same time and position than a foe
+    const maxLevel = 5; // maximum number of level
+    const levelDifficultyIncrementation = 1; // number of foe element add at each level
+    const levelTimeToBegin = 5; // delay in seconds before next level start
+    // variables
     let currentLevel = 1;
     let bombMaxCount = 10;
     let lifeMaxCount = 10;
@@ -42,20 +46,23 @@ window.onload = () => {
     let intervalArray = [];
     let hitsArray = [];
 
-    function addZero(val, n) {
+    /*function addZero(val, n) {
         if(isNaN(val)==false) {
             while(val.toString().length < n) {
                 val = "0" + val;
             }
         }
         return val;
-    }
+    }*/
+    // function which return the integer value of the element property passed in parameter
     function getPos(object,property) {
         return parseInt(window.getComputedStyle(object).getPropertyValue(property).replace("px",""));
     }
+    // function which return a array with the player position in the shape of (Y,X)
     function getPlayerPos() {
         return [getPos(player,"top"),getPos(player,"left")];
     }
+    // function which return a boolean if the player is detect or not in the explosion radius ( for bomb action )
     function detectPlayerInRadius(valY,valX) {
         let val = false;
         let player = getPlayerPos();
@@ -66,6 +73,7 @@ window.onload = () => {
         }
         return val;
     }
+    // function which return a array with the foe(s) detect in the explosion radius ( for bomb action )
     function detectFoesInRadius(valY,valX) {
         let indexArray = [];
         for(let pos = 0; pos <= foesArray.length-1; pos++) {
@@ -79,6 +87,7 @@ window.onload = () => {
         }
         return indexArray;
     }
+    // procedure for deleting foe(s) when one or many foes are detect in the explosion radius ( for bonb action )
     function deleteFoesInRadius(foesInRadius) {
         if(foesInRadius.length>0) {
             let indexDown = 0;
@@ -94,6 +103,7 @@ window.onload = () => {
             foesNbElement.innerText = foesCount;
         }
     }
+    // procedure when a bomb is release in the game
     function bombAction(indexInArray,valY,valX) {
         let bomb = container.querySelector("#"+bombsArray[indexInArray]);
         let interval = setInterval(() => {
@@ -142,6 +152,7 @@ window.onload = () => {
         }, bombDelay);
         timeoutArray.push(fId);
     }
+    // procedure when a collision is detect
     function collisionAction(minusLife) {
         player.classList.remove(collisionClass);
         let intervalCollision = setInterval(() => {
@@ -162,6 +173,7 @@ window.onload = () => {
             lifeNbElement.innerText = lifeCount;
         }
     }
+    // function which return a boolean if a collision is detect or not between the player and a foe ( for foe and player movement )
     function testCollision(foe) {
         let playerPos = getPlayerPos();
         let val = false;
@@ -190,6 +202,7 @@ window.onload = () => {
         }
         return val;
     }
+    // procedure for stoping animation ( like movement )
     function stopAnimation() {
         foesArray.forEach(foe => {
             clearInterval(foe[1]);
@@ -208,6 +221,7 @@ window.onload = () => {
             }
         }
     }
+    // procedure to go in the next level
     function nextLevel() {
         let el = document.createElement("div");
         el.classList.add("bandeau-class");
@@ -233,6 +247,7 @@ window.onload = () => {
         }, (levelTimeToBegin*1000));
         timeoutArray.push(timeout);
     }
+    // procedure when the game is lose
     function gameFail() {
         inGame = false;
         stopAnimation();
@@ -242,6 +257,7 @@ window.onload = () => {
         el.innerHTML = "<p>GAME OVER</p><p>Vous avez perdu !</p>";
         container.appendChild(el);
     }
+    // procedure execute when the game is won
     function gameWin() {
         inGame = false;
         stopAnimation();
@@ -256,6 +272,7 @@ window.onload = () => {
             container.appendChild(el);
         }
     }
+    // function which return a boolean if a bomb element is already or not at the same position ( when bomb is release )
     function testBombPosExist(elY,elX) {
         let val = false;
         if(bombsArray.length>0) {
@@ -268,6 +285,7 @@ window.onload = () => {
         }
         return val;
     }
+    // procedure which excecute action coresponding to the key code passed in parameter
     function gameAction(keyCode)
     {
         let playerPos = getPlayerPos();
@@ -377,11 +395,13 @@ window.onload = () => {
             }
         }
     }
+    // function which return a random number between one and the maximum number of elements for the grid game ( for positioning generated elements )
     function getRandomIntInclusive() {
         let min = 1;
         let max = Math.floor((maxOffset+offset)/offset);
         return Math.floor(Math.random() * (max - min +1)) + min;
     }
+    // function which return a boolean if a element is in the player zone or at the same position ( for generate elements ) 
     function testPosPlayer(elY,elX) {
         let val = false;
         if(elY>=initialY-(startClearZone*offset) && elY<=initialY+(startClearZone*offset) && elX>=initialX-(startClearZone*offset) && elX<=initialX+(startClearZone*offset)) {
@@ -389,6 +409,7 @@ window.onload = () => {
         }
         return val;
     }
+    // function which return a boolean if a element reach or not the border of the game zone ( for all moving elements )
     function testDirPosFoe(elY,elX,dir) {
         let val = false;
         if(dir!="none" && dir!="") {
@@ -425,6 +446,7 @@ window.onload = () => {
         }
         return val;
     }
+    // function which return a boolean if a foe element exit or not at the position generated ( for initialisation )
     function testFoePosExist(elY,elX) {
         let val = false;
         foesArray.forEach(div => {
@@ -437,6 +459,7 @@ window.onload = () => {
         });
         return val;
     }
+    // function which return a random string directory for foes elements ( for foes movement )
     function getFoesDirection(valY,valX) {
         let valN = Math.floor(Math.random() * (5 - 1 +1)) + 1;
         let dir = "none";
@@ -468,6 +491,7 @@ window.onload = () => {
         }
         return dir;
     }
+    // procedure for moving foes elements in the game ( lauch at the start and for each level )
     function foesInMovement() {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
@@ -475,10 +499,10 @@ window.onload = () => {
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
-                let collision = testDirPosFoe(valY,valX,dir);
-                while(collision) {
+                let collisionWall = testDirPosFoe(valY,valX,dir);
+                while(collisionWall) {
                     dir = getFoesDirection(valY,valX);
-                    collision = testDirPosFoe(valY,valX,dir);
+                    collisionWall = testDirPosFoe(valY,valX,dir);
                 }
                 switch(dir) {
                     case "top":
@@ -515,6 +539,7 @@ window.onload = () => {
             div.push(intervalRef);
         });
     }
+    // procedure to initialize variables and elements ( for next level and start game )
     function init(level) {
         inGame = false;
         if(typeof(level)==="number" && Number.isInteger(level)) {
@@ -549,10 +574,11 @@ window.onload = () => {
             div.remove();
         });
         let msg = container.querySelector("#bandeau");
-        if(typeof(msg)!=='undefined') { //msg!==null && 
+        if(typeof(msg)!=='undefined') {
             container.querySelector("#bandeau").remove(); 
         }
     }
+    // procedure to generate elements in the game with a good positioning
     function generatedElements(typeEl) {
         switch(typeEl) {
             case "foe":
@@ -593,6 +619,7 @@ window.onload = () => {
                 }
         }
     }
+    // procedure to start the game
     function startGame() {
         init();
         generatedElements("foe");
