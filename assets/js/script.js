@@ -7,8 +7,8 @@ window.onload = () => {
     const container = document.querySelector("#game-container");
     const foesNbElement = document.querySelector("#foe-count");
     const levelNbElement = document.querySelector("#level-count");
-    const levelToBeginElement = document.querySelector("#begin-time");
     //  game parameters
+    const levelToBeginId = "begin-time"; // identifier for the count down between each level
     const offset = 50; // pixel size for 1 square
     const maxOffset = 700; // maximun pixel size offset for elements
     const foesDelay = 500; // delay in miliseconds between each foe movement
@@ -19,7 +19,7 @@ window.onload = () => {
     const hitLifeCount = 1; // number of life to remove in the life counter
     const foesClass = "tracker"; // CSS class for foe element
     const bombClass = "bomb"; // CSS class for bomb element
-    //const wallClass = "wall"; // CSS class for wall element
+    const wallClass = "wall"; // CSS class for wall element
     const initialX = 400; // initial horizontal player position in pixel
     const initialY = 400; // initial vertical player position in pixel
     const startClearZone = 2; // number of grid square for the clear zone arround the player at the start
@@ -29,13 +29,19 @@ window.onload = () => {
     const bombBlinkInterval = 500; // delay in miliseconds between each bomb blink
     const sameHit = false; // to avoid ( false ) or not ( true ) the counting of the same hit when a player move at the same time and position than a foe
     const maxLevel = 5; // maximum number of level
-    const levelDifficultyIncrementation = 1; // number of foe element add at each level
+    const levelDifficultyIncrementationFoe = 1; // number of foe element add at each level
+    const levelDifficultyIncrementationBomb = 1; // number of bomb available add at each level
+    const levelDifficultyIncrementationLife = 1; // number of life available add at each level
     const levelTimeToBegin = 5; // delay in seconds before next level start
+    const beginLevel = 1; // level to begin the game
+    const baseFoeNumber = 10; // number of foe element at the begining
+    const baseBombNumber = 10; // number of bomb available at the begining
+    const baseLifeNumber = 10; // number of life available at the begining
     // variables
-    let currentLevel = 1;
-    let bombMaxCount = 10;
-    let lifeMaxCount = 10;
-    let foesMaxCount = 10;
+    let currentLevel = beginLevel;
+    let bombMaxCount = baseBombNumber;
+    let lifeMaxCount = baseLifeNumber;
+    let foesMaxCount = baseFoeNumber;
     let inGame = false;
     let bombCount = bombMaxCount;
     let lifeCount = lifeMaxCount;
@@ -60,6 +66,7 @@ window.onload = () => {
     }
     // function which return a array with the player position in the shape of (Y,X)
     function getPlayerPos() {
+        if(typeof(player)==="undefined" || player===null) {console.log("player "+player);}
         return [getPos(player,"top"),getPos(player,"left")];
     }
     // function which return a boolean if the player is detect or not in the explosion radius ( for bomb action )
@@ -79,6 +86,7 @@ window.onload = () => {
         for(let pos = 0; pos <= foesArray.length-1; pos++) {
             let foe = foesArray[pos];
             let el = container.querySelector("#"+foe[0]);
+            if(typeof(el)==="undefined" || el===null) {console.log("detectFoesInRadius "+el);}
             let elY = getPos(el,"top"); 
             let elX = getPos(el,"left"); 
             if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
@@ -93,8 +101,9 @@ window.onload = () => {
             let indexDown = 0;
             foesInRadius.forEach(index => {
                 let indexUpdate = index-indexDown;
-                let el = container.querySelector("#"+foesArray[indexUpdate][0]);
+                //console.log("indexUpdate = "+indexUpdate+"; index = "+index+"; indexDown = "+indexDown+"   "+typeof(foesArray[indexUpdate]));
                 clearInterval(foesArray[indexUpdate][1]);
+                let el = container.querySelector("#"+foesArray[indexUpdate][0]);
                 el.remove();
                 foesArray.splice(indexUpdate,1);
                 foesCount--;
@@ -178,6 +187,7 @@ window.onload = () => {
         let playerPos = getPlayerPos();
         let val = false;
         if(foe!==null && typeof(foe)!=='undefined') {
+            if(typeof(foe)==="undefined" || foe===null) {console.log("testCollision 1 "+foe);}
             let tempY = getPos(foe,"top");
             let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -192,6 +202,7 @@ window.onload = () => {
             let time = d.getTime().toString(); time = parseInt(time);
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
+                if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testCollision All "+tempEl);}
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -229,6 +240,7 @@ window.onload = () => {
         el.innerHTML = '<p>LEVEL WIN</p><p>Vous avez gagné le niveau '+currentLevel+' !</p><p>Prochain niveau dans <span id="begin-time">'+levelTimeToBegin+'</span> secondes !</p>';
         container.appendChild(el);
         let interval = setInterval(() => {
+            let levelToBeginElement = document.querySelector("#"+levelToBeginId);
             let time = parseInt(levelToBeginElement.innerText)-1; if(time<0) { time = 0; }
             levelToBeginElement.innerText = time;
         }, 1000);
@@ -276,11 +288,15 @@ window.onload = () => {
     function testBombPosExist(elY,elX) {
         let val = false;
         if(bombsArray.length>0) {
+            //console.log("1: "+bombsArray[bombsArray.length-1][0]+" "+bombsArray);
             let tempEl = container.querySelector("#"+bombsArray[bombsArray.length-1][0]);
-            let tempY = getPos(tempEl,"top");
-            let tempX = getPos(tempEl,"left");
-            if(tempY==elY && tempX==elX) {
-                val = true;
+            //if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testBombPosExist "+tempEl+" "+typeof(bombsArray[bombsArray.length-1][0])+" bombsArray "+bombsArray);}
+            if(typeof(tempEl)!=="undefined" && tempEl!==null) {
+                let tempY = getPos(tempEl,"top");
+                let tempX = getPos(tempEl,"left");
+                if(tempY==elY && tempX==elX) {
+                    val = true;
+                }
             }
         }
         return val;
@@ -380,7 +396,7 @@ window.onload = () => {
                         if(testBombPosExist(playerPos[0],playerPos[1])==false) {
                             let el = document.createElement("div"); 
                             el.classList.add(bombClass);
-                            el.id = "bomb"+bombCount;
+                            el.id = "bomb"+((baseBombNumber-bombCount)+1);
                             el.style.top = playerPos[0]+"px";
                             el.style.left = playerPos[1]+"px";
                             container.appendChild(el);
@@ -415,6 +431,7 @@ window.onload = () => {
         if(dir!="none" && dir!="") {
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
+                if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testDirPosFoe "+tempEl);}
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(dir=="all") {
@@ -451,6 +468,7 @@ window.onload = () => {
         let val = false;
         foesArray.forEach(div => {
             let tempEl = container.querySelector("#"+div[0]);
+            if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testFoePosExist "+tempEl);}
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -496,6 +514,7 @@ window.onload = () => {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
                 let el = container.querySelector("#"+div[0]);
+                if(typeof(el)==="undefined" || el===null) {console.log("testFoePosExist "+el);}
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
@@ -544,15 +563,15 @@ window.onload = () => {
         inGame = false;
         if(typeof(level)==="number" && Number.isInteger(level)) {
             currentLevel = level;
-            bombMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
-            lifeMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
-            foesMaxCount = 10+((currentLevel-1)*levelDifficultyIncrementation);
+            bombMaxCount = baseBombNumber+((currentLevel-1)*levelDifficultyIncrementationBomb);
+            lifeMaxCount = baseLifeNumber+((currentLevel-1)*levelDifficultyIncrementationLife);
+            foesMaxCount = baseFoeNumber+((currentLevel-1)*levelDifficultyIncrementationFoe);
         }
         else {
-            currentLevel = 1;
-            bombMaxCount = 10;
-            lifeMaxCount = 10;
-            foesMaxCount = 10;
+            currentLevel = beginLevel;
+            bombMaxCount = baseBombNumber;
+            lifeMaxCount = baseLifeNumber;
+            foesMaxCount = baseFoeNumber;
         }
         bombCount = bombMaxCount;
         lifeCount = lifeMaxCount;
