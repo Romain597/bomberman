@@ -66,7 +66,7 @@ window.onload = () => {
     }
     // function which return a array with the player position in the shape of (Y,X)
     function getPlayerPos() {
-        if(typeof(player)==="undefined" || player===null) {console.log("player "+player);}
+        //if(typeof(player)==="undefined" || player===null) {console.log("player "+player);}
         return [getPos(player,"top"),getPos(player,"left")];
     }
     // function which return a boolean if the player is detect or not in the explosion radius ( for bomb action )
@@ -86,7 +86,7 @@ window.onload = () => {
         for(let pos = 0; pos <= foesArray.length-1; pos++) {
             let foe = foesArray[pos];
             let el = container.querySelector("#"+foe[0]);
-            if(typeof(el)==="undefined" || el===null) {console.log("detectFoesInRadius "+el);}
+            //if(typeof(el)==="undefined" || el===null) {console.log("detectFoesInRadius "+el);}
             let elY = getPos(el,"top"); 
             let elX = getPos(el,"left"); 
             if(elY>=valY-(explosionRadius*offset) && elY<=valY+(explosionRadius*offset) && elX>=valX-(explosionRadius*offset) && elX<=valX+(explosionRadius*offset)) {
@@ -187,7 +187,7 @@ window.onload = () => {
         let playerPos = getPlayerPos();
         let val = false;
         if(foe!==null && typeof(foe)!=='undefined') {
-            if(typeof(foe)==="undefined" || foe===null) {console.log("testCollision 1 "+foe);}
+            //if(typeof(foe)==="undefined" || foe===null) {console.log("testCollision 1 "+foe);}
             let tempY = getPos(foe,"top");
             let tempX = getPos(foe,"left");
             if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -202,7 +202,7 @@ window.onload = () => {
             let time = d.getTime().toString(); time = parseInt(time);
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
-                if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testCollision All "+tempEl);}
+                //if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testCollision All "+tempEl);}
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(tempY==playerPos[0] && tempX==playerPos[1]) {
@@ -431,7 +431,7 @@ window.onload = () => {
         if(dir!="none" && dir!="") {
             foesArray.forEach(div => {
                 let tempEl = container.querySelector("#"+div[0]);
-                if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testDirPosFoe "+tempEl);}
+                //if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testDirPosFoe "+tempEl);}
                 let tempY = getPos(tempEl,"top");
                 let tempX = getPos(tempEl,"left");
                 if(dir=="all") {
@@ -468,7 +468,7 @@ window.onload = () => {
         let val = false;
         foesArray.forEach(div => {
             let tempEl = container.querySelector("#"+div[0]);
-            if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testFoePosExist "+tempEl);}
+            //if(typeof(tempEl)==="undefined" || tempEl===null) {console.log("testFoePosExist "+tempEl);}
             let tempY = getPos(tempEl,"top");
             let tempX = getPos(tempEl,"left");
             if(tempY==elY && tempX==elX) {
@@ -514,7 +514,7 @@ window.onload = () => {
         foesArray.forEach(div => {
             let intervalRef = setInterval(() => {
                 let el = container.querySelector("#"+div[0]);
-                if(typeof(el)==="undefined" || el===null) {console.log("testFoePosExist "+el);}
+                //if(typeof(el)==="undefined" || el===null) {console.log("testFoePosExist "+el);}
                 let offsetY = 0; let valY = getPos(el,"top");
                 let offsetX = 0; let valX = getPos(el,"left");
                 let dir = getFoesDirection(valY,valX);
