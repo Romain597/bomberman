@@ -646,7 +646,7 @@ window.onload = () => {
         foesInMovement();
     }
     // key listener
-    window.addEventListener("keyup", event => {
+    window.addEventListener("keydown", event => {
         if(event.code=="Digit0" || event.code=="Numpad0") {
             startGame();
         }
